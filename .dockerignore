@@ -1,0 +1,5 @@
+# Ignore Terraform code folder
+terraform-code/
+
+# Ignore Jenkinsfile
+Jenkinsfile
