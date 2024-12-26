@@ -162,7 +162,7 @@ pipeline {
         stage("14. Fetch and Display URLs") {
             steps {
                 script {
-                    sh """
+                    sh '''
                     # Wait for services to be provisioned
                     echo "Waiting for ArgoCD service to be ready..."
                     until kubectl get svc -n argocd argocd-server &>/dev/null; do sleep 30; done
@@ -172,10 +172,10 @@ pipeline {
                     until kubectl get svc -n prometheus kube-prometheus-stack-grafana &>/dev/null; do sleep 30; done
 
                     # Fetch and display URLs and credentials
-                    argo_url=$(kubectl get svc -n argocd | grep argocd-server | awk '{print $4}')
+                    argo_url=$(kubectl get svc -n argocd | grep argocd-server | awk \'{print $4}\')
                     argo_password=$(kubectl -n argocd get secret argocd-initial-admin-secret -o jsonpath="{.data.password}" | base64 --decode)
-                    prometheus_url=$(kubectl get svc -n prometheus | grep kube-prometheus-stack-prometheus | awk '{print $4}')
-                    grafana_url=$(kubectl get svc -n prometheus | grep kube-prometheus-stack-grafana | awk '{print $4}')
+                    prometheus_url=$(kubectl get svc -n prometheus | grep kube-prometheus-stack-prometheus | awk \'{print $4}\')
+                    grafana_url=$(kubectl get svc -n prometheus | grep kube-prometheus-stack-grafana | awk \'{print $4}\')
                     grafana_password=$(kubectl get secret kube-prometheus-stack-grafana -n prometheus -o jsonpath="{.data.admin-password}" | base64 --decode)
 
                     echo "------------------------"
@@ -189,9 +189,10 @@ pipeline {
                     echo "Grafana User: admin"
                     echo "Grafana Password: $grafana_password"
                     echo "------------------------"
-                    """
+                    '''
                 }
             }
         }
+
     }
 }
