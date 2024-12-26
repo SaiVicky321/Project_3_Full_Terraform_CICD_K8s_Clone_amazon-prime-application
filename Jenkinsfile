@@ -172,11 +172,28 @@ pipeline {
                     until kubectl get svc -n prometheus kube-prometheus-stack-grafana &>/dev/null; do sleep 30; done
 
                     # Fetch and display URLs and credentials
-                    argo_url=$(kubectl get svc -n argocd | grep argocd-server | awk \'{print $4}\')
-                    argo_password=$(kubectl -n argocd get secret argocd-initial-admin-secret -o jsonpath="{.data.password}" | base64 --decode)
-                    prometheus_url=$(kubectl get svc -n prometheus | grep kube-prometheus-stack-prometheus | awk \'{print $4}\')
-                    grafana_url=$(kubectl get svc -n prometheus | grep kube-prometheus-stack-grafana | awk \'{print $4}\')
-                    grafana_password=$(kubectl get secret kube-prometheus-stack-grafana -n prometheus -o jsonpath="{.data.admin-password}" | base64 --decode)
+                    argo_url=$(kubectl get svc -n argocd argocd-server -o jsonpath='{.status.loadBalancer.ingress[0].hostname}')
+                    if [ -z "$argo_url" ]; then
+                        argo_url=$(kubectl get svc -n argocd argocd-server -o jsonpath='{.status.loadBalancer.ingress[0].ip}')
+                    fi
+
+                    until kubectl get secret argocd-initial-admin-secret -n argocd &>/dev/null; do
+                        echo "Waiting for ArgoCD admin secret..."
+                        sleep 30
+                    done
+                    argo_password=$(kubectl -n argocd get secret argocd-initial-admin-secret -o jsonpath='{.data.password}' | base64 --decode)
+
+                    prometheus_url=$(kubectl get svc -n prometheus kube-prometheus-stack-prometheus -o jsonpath='{.status.loadBalancer.ingress[0].hostname}')
+                    if [ -z "$prometheus_url" ]; then
+                        prometheus_url=$(kubectl get svc -n prometheus kube-prometheus-stack-prometheus -o jsonpath='{.status.loadBalancer.ingress[0].ip}')
+                    fi
+
+                    grafana_url=$(kubectl get svc -n prometheus kube-prometheus-stack-grafana -o jsonpath='{.status.loadBalancer.ingress[0].hostname}')
+                    if [ -z "$grafana_url" ]; then
+                        grafana_url=$(kubectl get svc -n prometheus kube-prometheus-stack-grafana -o jsonpath='{.status.loadBalancer.ingress[0].ip}')
+                    fi
+
+                    grafana_password=$(kubectl get secret kube-prometheus-stack-grafana -n prometheus -o jsonpath='{.data.admin-password}' | base64 --decode)
 
                     echo "------------------------"
                     echo "ArgoCD URL: $argo_url"
@@ -193,6 +210,40 @@ pipeline {
                 }
             }
         }
+        // stage("14. Fetch and Display URLs") {
+        //     steps {
+        //         script {
+        //             sh '''
+        //             # Wait for services to be provisioned
+        //             echo "Waiting for ArgoCD service to be ready..."
+        //             until kubectl get svc -n argocd argocd-server &>/dev/null; do sleep 30; done
+
+        //             echo "Waiting for Prometheus and Grafana services to be ready..."
+        //             until kubectl get svc -n prometheus kube-prometheus-stack-prometheus &>/dev/null; do sleep 30; done
+        //             until kubectl get svc -n prometheus kube-prometheus-stack-grafana &>/dev/null; do sleep 30; done
+
+        //             # Fetch and display URLs and credentials
+        //             argo_url=$(kubectl get svc -n argocd | grep argocd-server | awk \'{print $4}\')
+        //             argo_password=$(kubectl -n argocd get secret argocd-initial-admin-secret -o jsonpath="{.data.password}" | base64 --decode)
+        //             prometheus_url=$(kubectl get svc -n prometheus | grep kube-prometheus-stack-prometheus | awk \'{print $4}\')
+        //             grafana_url=$(kubectl get svc -n prometheus | grep kube-prometheus-stack-grafana | awk \'{print $4}\')
+        //             grafana_password=$(kubectl get secret kube-prometheus-stack-grafana -n prometheus -o jsonpath="{.data.admin-password}" | base64 --decode)
+
+        //             echo "------------------------"
+        //             echo "ArgoCD URL: $argo_url"
+        //             echo "ArgoCD User: admin"
+        //             echo "ArgoCD Password: $argo_password"
+        //             echo
+        //             echo "Prometheus URL: $prometheus_url:9090"
+        //             echo
+        //             echo "Grafana URL: $grafana_url"
+        //             echo "Grafana User: admin"
+        //             echo "Grafana Password: $grafana_password"
+        //             echo "------------------------"
+        //             '''
+        //         }
+        //     }
+        // }
 
     }
 }
