@@ -17,6 +17,12 @@ spec:
     spec:
       containers:
       - name: prime-video-app-container
-        image: 058264339595.dkr.ecr.us-east-1.amazonaws.com/amazon-prime:latest
+        image: "${AWS_ACCOUNT_ID}.dkr.ecr.us-east-1.amazonaws.com/amazon-prime:latest"
         ports:
         - containerPort: 3000
+        env:
+          - name: AWS_ACCOUNT_ID
+            valueFrom:
+              secretKeyRef:
+                name: aws-account-secret
+                key: account-id
