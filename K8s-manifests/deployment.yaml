@@ -17,6 +17,6 @@ spec:
     spec:
       containers:
       - name: prime-video-app-container
-        image: 058264339595.dkr.ecr.us-east-1.amazonaws.com/amazon-prime:latest
+        image: 058264339595.dkr.ecr.us-east-1.amazonaws.com/amazon-prime:latest # --> ImageName from ECR
         ports:
-        - containerPort: 3000
+        - containerPort: 3000 # Application listens port to 3000
